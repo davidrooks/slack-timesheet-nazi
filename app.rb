@@ -7,6 +7,21 @@ end
 
 post '/' do
   users = params['text'].split
+  if users.size == 0
+    remind
+  else
+    offence users
+  end
+end
+
+def remind
+  res = {}
+  # res["response_type"] = "in_channel"
+  res["text"] = "@channel - timesheet reminder!"
+  halt 200, {'Content-Type' => 'application/json'}, res.to_json
+end
+
+def offence(users)
   users.each do |user|
     if @offenders.has_key? user
       @offenders[user] = @offenders[user] + 1
@@ -18,12 +33,14 @@ post '/' do
   naughty_boys = @offenders.reject{|k,v| v < 3}
 
   res = {}
+# res["response_type"] = "in_channel"
   res["text"] = "Timesheets please #{params['text']}"
   res["attachments"] = []
 
   naughty_boys.each do |key,val|
     tmp = {}
     tmp["color"] = "danger"
+    tmp["thumb_url"] = ""
     bad = {}
     tmp["fields"] = []
     bad["title"] = "Penalty"
