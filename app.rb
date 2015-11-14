@@ -40,10 +40,9 @@ def offence(users)
   naughty_boys.each do |key,val|
     tmp = {}
     tmp["color"] = "danger"
-    tmp["thumb_url"] = ""
     bad = {}
     tmp["fields"] = []
-    bad["title"] = "Penalty"
+    bad["title"] = ":cop: Penalty"
     bad["value"] = 'Oh oh! ' + key + ' has not done their timesheet again and will seek redemption by buying the team some cakes.'
     bad["short"] = false
     tmp["fields"] << bad
