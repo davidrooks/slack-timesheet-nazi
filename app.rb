@@ -7,7 +7,7 @@ end
 
 post '/' do
   if ENV['user']
-    if ENV['user'] != params['user_name']
+    if !ENV['user'].split(',').include?(params['user_name'])
       unauthorised
     end
   end
