@@ -6,12 +6,23 @@ before do
 end
 
 post '/' do
+  if ENV['user']
+    if ENV['user'] != params['user_name']
+      unauthorised
+    end
+  end
   users = params['text'].split
   if users.size == 0
     remind
   else
     offence users
   end
+end
+
+def unauthorised
+  res = {}
+  res["text"] = "Nice try! No soup for you."
+  halt 200, {'Content-Type' => 'application/json'}, res.to_json
 end
 
 def remind
