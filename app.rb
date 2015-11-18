@@ -1,8 +1,13 @@
 require 'sinatra'
 require 'json'
+require 'date'
 
 before do
-  @offenders = eval(File.read('offenders.txt'))
+  if File.exists? 'offenders.txt'
+    @offenders = eval(File.read('offenders.txt'))
+  else
+    @offenders = {}
+  end
 end
 
 post '/' do
@@ -37,13 +42,16 @@ end
 def offence(users)
   users.each do |user|
     if @offenders.has_key? user
-      @offenders[user] = @offenders[user] + 1
+      if  !@offenders[user].include?(Date.today.to_s)
+        @offenders[user] << Date.today.to_s
+      end
     else
-      @offenders[user] = 1
+      @offenders[user] = []
+      @offenders[user] << Date.today.to_s
     end
   end
 
-  naughty_boys = @offenders.reject{|k,v| v < 3}
+  naughty_boys = @offenders.reject{|k,v| v.size < 3}
 
   res = {}
   if ENV['SEND_TO'] == 'ALL'
@@ -62,7 +70,7 @@ def offence(users)
     bad["short"] = false
     tmp["fields"] << bad
     res['attachments'] << tmp
-    @offenders[key] = 0
+    @offenders[key] = []
   end
 
   halt 200, {'Content-Type' => 'application/json'}, res.to_json
