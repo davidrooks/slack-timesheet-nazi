@@ -6,8 +6,8 @@ before do
 end
 
 post '/' do
-  if ENV['user']
-    if !ENV['user'].split(',').include?(params['user_name'])
+  if ENV['USERS']
+    if !ENV['USERS'].split(',').include?(params['user_name'])
       unauthorised
     end
   end
@@ -27,7 +27,9 @@ end
 
 def remind
   res = {}
-  # res["response_type"] = "in_channel"
+  if ENV['SEND_TO'] == 'ALL'
+    res["response_type"] = "in_channel"
+  end
   res["text"] = "@channel - timesheet reminder!"
   halt 200, {'Content-Type' => 'application/json'}, res.to_json
 end
@@ -44,7 +46,9 @@ def offence(users)
   naughty_boys = @offenders.reject{|k,v| v < 3}
 
   res = {}
-# res["response_type"] = "in_channel"
+  if ENV['SEND_TO'] == 'ALL'
+    res["response_type"] = "in_channel"
+  end
   res["text"] = "Timesheets please #{params['text']}"
   res["attachments"] = []
 
@@ -53,8 +57,8 @@ def offence(users)
     tmp["color"] = "danger"
     bad = {}
     tmp["fields"] = []
-    bad["title"] = ":cop: Penalty"
-    bad["value"] = 'Oh oh! ' + key + ' has not done their timesheet again and will seek redemption by buying the team some cakes.'
+    bad["title"] = ":cop: Penalty!"
+    bad["value"] = 'Oh oh! ' + key + ' has not done their timesheet AGAIN and will seek redemption by ' + punishment
     bad["short"] = false
     tmp["fields"] << bad
     res['attachments'] << tmp
@@ -64,6 +68,14 @@ def offence(users)
   halt 200, {'Content-Type' => 'application/json'}, res.to_json
 end
 
+def punishment
+  punishments = [
+      'buying the team some cakes.',
+      'spending a day wearing the hat of shame.',
+  ]
+
+  return punishments[rand(punishments.size)]
+end
 
 after do
   File.open('offenders.txt', 'w') { |file| file.write(@offenders) }
