@@ -10,6 +10,11 @@ before do
   end
 end
 
+
+get '/' do
+  halt 200, 'app running'
+end
+
 post '/' do
   if ENV['USERS']
     if !ENV['USERS'].split(',').include?(params['user_name'])
