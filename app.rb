@@ -37,7 +37,7 @@ end
 
 def remind
   res = {}
-  if ENV['SEND_TO'] == 'ALL'
+  if ENV['SEND_TO'].upcase == 'ALL'
     res["response_type"] = "in_channel"
   end
   res["text"] = "@channel - timesheet reminder!"
