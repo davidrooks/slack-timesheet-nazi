@@ -2,9 +2,14 @@ require 'sinatra'
 require 'json'
 require 'date'
 
+WARNINGS = 3
+
 before do
   if File.exists? 'offenders.txt'
     @offenders = eval(File.read('offenders.txt'))
+    if @offenders.nil?
+      @offenders = {}
+    end
   else
     @offenders = {}
   end
@@ -37,7 +42,7 @@ end
 
 def remind
   res = {}
-  if ENV['SEND_TO'].upcase == 'ALL'
+  if ENV['SEND_TO'] && ENV['SEND_TO'].upcase == 'ALL'
     res["response_type"] = "in_channel"
   end
   res["text"] = "@channel - timesheet reminder!"
@@ -56,26 +61,34 @@ def offence(users)
     end
   end
 
-  naughty_boys = @offenders.reject{|k,v| v.size < 3}
-
   res = {}
-  if ENV['SEND_TO'] == 'ALL'
+  if ENV['SEND_TO'] && ENV['SEND_TO'].upcase == 'ALL'
     res["response_type"] = "in_channel"
   end
   res["text"] = "Timesheets please #{params['text']}"
   res["attachments"] = []
 
-  naughty_boys.each do |key,val|
+  @offenders.each do |key,val|
     tmp = {}
-    tmp["color"] = "danger"
     bad = {}
-    tmp["fields"] = []
-    bad["title"] = ":cop: Penalty!"
-    bad["value"] = 'Oh oh! ' + key + ' has not done their timesheet AGAIN and will seek redemption by ' + punishment
-    bad["short"] = false
-    tmp["fields"] << bad
-    res['attachments'] << tmp
-    @offenders[key] = []
+    if val.size == WARNINGS
+      tmp["color"] = "danger"
+      tmp["fields"] = []
+      bad["title"] = ":cop: Penalty!"
+      bad["value"] = 'Oh oh! ' + key + ' you have not done your timesheet AGAIN and will seek redemption by ' + punishment
+      bad["short"] = false
+      tmp["fields"] << bad
+      res['attachments'] << tmp
+      @offenders[key] = []
+    elsif val.size == WARNINGS-1
+      tmp["color"] = "warning"
+      tmp["fields"] = []
+      bad["title"] = ":bomb: Warning!"
+      bad["value"] = key + ' you have not done your timesheet again and are on your last warning. Next time you will be penalised. You have been warned.'
+      bad["short"] = false
+      tmp["fields"] << bad
+      res['attachments'] << tmp
+    end
   end
 
   halt 200, {'Content-Type' => 'application/json'}, res.to_json
