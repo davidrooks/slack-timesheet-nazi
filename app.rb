@@ -17,8 +17,13 @@ end
 
 
 get '/' do
-  halt 200, 'app running'
+  offence ["@sefton", "@zander"]
 end
+
+get '/test' do
+  halt 200, 'offenders = ' + @offenders
+end
+
 
 post '/' do
   if ENV['USERS']
