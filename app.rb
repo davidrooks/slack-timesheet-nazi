@@ -19,8 +19,6 @@ end
 class Offender < ActiveRecord::Base
 end
 
-
-
 WARNINGS = 3
 
 before do
@@ -35,8 +33,9 @@ before do
 
 end
 
-get '/test' do
-  offence ["@sefton", "@zander"]
+post '/test' do
+  params = eval(request.body.read)
+  offence params[:offenders]
   halt 200, 'offenders = ' + @offenders
 end
 
@@ -73,7 +72,7 @@ end
 def offence(users)
   users.each do |user|
     if @offenders.has_key? user.to_sym
-      if  !@offenders[user].include?(Date.today.to_s)
+      if  !@offenders[user.to_sym].include?(Date.today.to_s)
         @offenders[user.to_sym] << Date.today.to_s
       end
     else
