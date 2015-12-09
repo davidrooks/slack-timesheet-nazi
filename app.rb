@@ -35,10 +35,20 @@ before do
 
 end
 
+<<<<<<< HEAD
 get '/test' do
   offence ["@sefton", "@zander"]
   halt 200, 'offenders = ' + @offenders.to_json
+=======
+get '/' do
+  offence ["@sefton", "@zander"]
+>>>>>>> master
 end
+
+get '/test' do
+  halt 200, 'offenders = ' + @offenders
+end
+
 
 post '/' do
   if ENV['USERS']
