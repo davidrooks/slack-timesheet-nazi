@@ -35,15 +35,10 @@ before do
 
 end
 
-
-get '/' do
-  offence ["@sefton", "@zander"]
-end
-
 get '/test' do
+  offence ["@sefton", "@zander"]
   halt 200, 'offenders = ' + @offenders.to_json
 end
-
 
 post '/' do
   if ENV['USERS']
