@@ -4,8 +4,13 @@ require 'json'
 require 'date'
 require 'active_support/core_ext/hash/indifferent_access'
 
+env = ENV['ENVIRONMENT'] || 'DEVELOP'
 
-set :database, {adapter: "sqlite3", database: "timesheet_nazi.sqlite3"}
+if env == 'DEVELOP'
+  set :database, {adapter: "sqlite3", database: "timesheet_nazi.sqlite3"}
+else
+  set :database, ENV['DATABASE_URL'] || 'postgres://localhost/timesheet_nazi'
+end
 
 
 ActiveRecord::Schema.define do
@@ -35,7 +40,9 @@ end
 
 post '/test' do
   params = eval(request.body.read)
-  offence params[:offenders]
+  if params[:offenders]
+    offence params[:offenders]
+  end
   halt 200, 'offenders = ' + @offenders
 end
 
@@ -89,6 +96,9 @@ def offence(users)
   res["attachments"] = []
 
   @offenders.each do |key,val|
+    if !users.include? key
+      next
+    end
     tmp = {}
     bad = {}
     if val.size == WARNINGS
