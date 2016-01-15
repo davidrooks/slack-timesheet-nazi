@@ -1,49 +1,30 @@
-require 'sinatra/activerecord'
 require 'sinatra'
 require 'json'
 require 'date'
-require 'active_support/core_ext/hash/indifferent_access'
+require 'rest-client'
 
 env = ENV['ENVIRONMENT'] || 'DEVELOP'
 
-if env == 'DEVELOP'
-  set :database, {adapter: "sqlite3", database: "timesheet_nazi.sqlite3"}
-else
-  set :database, ENV['DATABASE_URL'] || 'postgres://localhost/timesheet_nazi'
-end
-
-
-ActiveRecord::Schema.define do
-  if !ActiveRecord::Base.connection.tables.include? 'offenders'
-    create_table :offenders do |t|
-      t.column :list, :string
-    end
-  end
-end
-
-class Offender < ActiveRecord::Base
-end
+JSON_API = 'https://api.myjson.com/bins/2v9h1'
 
 WARNINGS = 3
 
 before do
-  @res = Offender.all
-  if @res.count == 0
-    @res = Offender.create(:list => {})
-  else
-    @res = @res.first
-  end
+  res = JSON.parse(RestClient.get JSON_API, {:accept => :json})
+  puts res
 
-  @offenders = eval(@res[:list])
-
+  @offenders = res.to_hash
+  puts @offenders
 end
 
+# pass json in body {'offenders' => [@sefton, @zander]}
 post '/test' do
   params = eval(request.body.read)
-  if params[:offenders]
-    offence params[:offenders]
+  puts params
+  if !params.nil? && params['offenders']
+    offence params['offenders']
   end
-  halt 200, 'offenders = ' + @offenders
+  halt 200, 'offenders = ' + @offenders.to_s
 end
 
 
@@ -78,13 +59,14 @@ end
 
 def offence(users)
   users.each do |user|
-    if @offenders.has_key? user.to_sym
-      if  !@offenders[user.to_sym].include?(Date.today.to_s)
-        @offenders[user.to_sym] << Date.today.to_s
+    if @offenders.has_key? user
+      puts 'has key'
+      if  !@offenders[user].include?(Date.today.to_s)
+        @offenders[user] << Date.today.to_s
       end
     else
-      @offenders[user.to_sym] = []
-      @offenders[user.to_sym] << Date.today.to_s
+      @offenders[user] = []
+      @offenders[user] << Date.today.to_s
     end
   end
 
@@ -134,8 +116,8 @@ def punishment
 end
 
 after do
-  @res[:list] = @offenders.to_json
-  @res.save
+  puts @offenders
+  RestClient.put JSON_API, @offenders.to_json, :content_type => 'application/json'
 end
 
 
