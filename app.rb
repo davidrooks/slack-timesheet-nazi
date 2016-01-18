@@ -17,7 +17,7 @@ before do
   puts @offenders
 end
 
-# pass json in body {'offenders' => [@sefton, @zander]}
+# pass json in body {'offenders' => [''@sefton', '@zander']}
 post '/test' do
   params = eval(request.body.read)
   puts params
