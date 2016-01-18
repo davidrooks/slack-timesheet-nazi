@@ -15,6 +15,7 @@ class App < Sinatra::Base
   end
 
   before do
+    next unless request.post?
     res = JSON.parse(RestClient.get JSON_API, {:accept => :json})
     puts res
 
@@ -125,6 +126,7 @@ class App < Sinatra::Base
   end
 
   after do
+    next unless request.post?
     puts @offenders
     RestClient.put JSON_API, @offenders.to_json, :content_type => 'application/json'
   end
