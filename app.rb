@@ -2,6 +2,7 @@ require 'sinatra/base'
 require 'json'
 require 'date'
 require 'rest-client'
+require 'logger'
 
 class App < Sinatra::Base
 
@@ -12,15 +13,17 @@ class App < Sinatra::Base
 
   configure :production, :development do
     enable :logging
+    if ENV['VCAP_SERVICES']
+      vcap = "http://#{ENV['WEB_PROXY_USER']}:#{ENV['WEB_PROXY_PASS']}@#{ENV['WEB_PROXY_HOST']}:#{ENV['WEB_PROXY_PORT']}"
+      RestClient.proxy = vcap
+    end
   end
 
   before do
     next unless request.post?
     res = JSON.parse(RestClient.get JSON_API, {:accept => :json})
-    puts res
 
     @offenders = res.to_hash
-    puts @offenders
   end
 
 # pass json in body {'offenders' => [''@sefton', '@zander']}
@@ -34,7 +37,7 @@ class App < Sinatra::Base
   end
 
   get '/' do
-    halt 200, 'hello world'
+    halt 200, "http://#{ENV['WEB_PROXY_USER']}:#{ENV['WEB_PROXY_PASS']}@#{ENV['WEB_PROXY_HOST']}:#{ENV['WEB_PROXY_PORT']}"
   end
 
 
@@ -121,7 +124,6 @@ class App < Sinatra::Base
         'buying the team some cakes.',
         'spending a day wearing the hat of shame.',
     ]
-
     return punishments[rand(punishments.size)]
   end
 
